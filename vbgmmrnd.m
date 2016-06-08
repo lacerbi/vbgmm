@@ -1,27 +1,30 @@
-function varargout = vbgmmrnd(vbmodel,n)
+function X = vbgmmrnd(vbmodel,n)
 %VBGMMRND Draw samples from posterior variational Gaussian mixture model.
+%
+%   X = VBGMMRND(VBMODEL) returns a random vector drawn from the variational 
+%   Gaussian mixture model VBMODEL.
+%
+%   X = VBGMMRND(VBMODEL,N) returns N random vectors in a D-by-N matrix.
+%
+%   See also VBGMMFIT, VBGMMPDF.
 
-% Predict label and responsibility for Gaussian mixture model trained by VB.
-% Input:
-%   X: d x n data matrix
-%   model: trained model structure outputed by the EM algirthm
-% Output:
-%   label: 1 x n cluster label
-%   R: k x n responsibility
-% Written by Mo Chen (sth4nth@gmail.com).
+% Author:   Luigi Acerbi
+% Email:    luigi.acerbi@gmail.com
+
+if nargin < 2 || isempty(n); n = 1; end
+
 alpha = vbmodel.alpha; % Dirichlet
 beta = vbmodel.beta;   % Gaussian
 m = vbmodel.m;         % Gaussian
 nu = vbmodel.nu;       % Wishart
 U = vbmodel.U;         % Wishart 
-logW = vbmodel.logW;
 [d,k] = size(m);
 
-nd = size(n);
+% nd = size(n);
 n = prod(n);
 
 p = alpha./sum(alpha);
-r = mnrnd(n,p); % To be fixed, do not use Stats toolbox
+r = multinomrnd(n,p);
 
 X = zeros(d,n);
 
@@ -50,9 +53,19 @@ if isfield(vbmodel,'prior') && ~isempty(vbmodel.prior) ...
         && isfield(vbmodel.prior,'LB') && isfield(vbmodel.prior,'UB')
     LB = vbmodel.prior.LB;
     UB = vbmodel.prior.UB;
-    X = vbtransform(X,LB,UB,'inv');
+    if any(isfinite(LB)) || any(isfinite(UB))
+        X = vbtransform(X,LB,UB,'inv');
+    end
 end
 
-varargout{1} = X;
+end
+
+%--------------------------------------------------------------------------
+function r = multinomrnd(n,p)
+%MULTINOMRND Random vectors from the multinomial distribution.
+
+P = [0,cumsum(p,2)];
+m = rand(n,1);
+r = histc(m,P);
 
 end

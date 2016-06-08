@@ -1,4 +1,4 @@
-function [vbmodel,label,L] = vbgmmfit(X,m,prior,options)
+function [vbmodel,labels,L,removed] = vbgmmfit(X,m,prior,options)
 %VBGMMFIT Variational Bayes fit of Gaussian mixture model.
 %
 %   VBMODEL = VBGMMFIT(X,M) fits a variational Gaussian mixture model to 
@@ -10,6 +10,7 @@ function [vbmodel,label,L] = vbgmmfit(X,m,prior,options)
 %        data point belongs to.
 %      * a model structure (as per VBMODEL).
 %   The returned VBMODEL is a trained model structure.
+%   VBGMMFIT ignores data points containing Inf or NaN values.
 %
 %   VBMODEL = VBGMMFIT(X,M,PRIOR) specifies a prior structure PRIOR for
 %   the variational inference. (documentation needed)
@@ -23,11 +24,16 @@ function [vbmodel,label,L] = vbgmmfit(X,m,prior,options)
 % 
 %      (documentation needed)
 %
-%   [VBMODEL,LABEL] = VBGMMFIT(...) returns cluster labels for the trained
-%   Gaussian mixture model.
+%   [VBMODEL,LABELS] = VBGMMFIT(...) returns cluster labels for the trained
+%   Gaussian mixture model. 
 %
-%   [VBMODEL,LABEL,L] = VBGMMFIT(...) returns the variational lower bound.
+%   [VBMODEL,LABELS,L] = VBGMMFIT(...) returns the variational lower bound.
 %
+%   [VBMODEL,LABELS,L,REMOVED] = VBGMMFIT(...) returns a 1-by-N logical 
+%   array whose elements are true for the data points of X that were
+%   excluded from the analysis.
+%
+%   See also VBGMMPDF, VBGMMPRED, VBGMMRND. 
 
 % Reference: Christopher M. Bishop, Pattern Recognition and Machine
 % Learning, Springer-Verlag, New York, 2006 (Chapter 10).
@@ -35,7 +41,7 @@ function [vbmodel,label,L] = vbgmmfit(X,m,prior,options)
 % Author:   Luigi Acerbi
 % Email:    luigi.acerbi@gmail.com
 %
-% This toolbox has been inspired by "VB inference for GMM" toolbox by Mo Chen:
+% This toolbox was inspired by "VB inference for GMM" toolbox by Mo Chen:
 % http://www.mathworks.com/matlabcentral/fileexchange/35362-variational-bayesian-inference-for-gaussian-mixture-model
 
 % Bounds are only partially supported
@@ -90,9 +96,10 @@ prior.mean_orig = mean(X,2);
 prior.var_orig = var(X,[],2);
 
 % Initialize prior
+[~,nold] = size(X);
 [vbmodel0,X,removed] = vbinit(X,m,prior,LB,UB);
-if removed > 0 && trace > 1
-    fprintf('Removed %d points in X on or outside bounds.\n',removed);
+if any(removed) && trace > 1
+    fprintf('Removed %d points in X on or outside bounds, or with Inf/NaN values.\n',sum(removed));
 end
 [~,n] = size(X);
 
@@ -110,15 +117,15 @@ for irun = 1:starts
         k = size(vbtemp.R,2);
         switch lower(options.ClusterInit)
             case 'rand'     % Random cluster assignment
-                label = randi(k,[1,n]);
+                labels = randi(k,[1,n]);
             case 'kmeans'
                 kmeansopt.Display = 'off';
                 kmeansopt.Preprocessing = 'whiten';
-                label = fastkmeans(X',k,kmeansopt);
+                labels = fastkmeans(X',k,kmeansopt);
             otherwise
                 error('OPTIONS.ClusterInit can be ''rand'' for random cluster assignment or ''kmeans'' for K-means clustering.');
         end
-        vbtemp.R = full(sparse(1:n,label,1,n,k,n));                
+        vbtemp.R = full(sparse(1:n,labels,1,n,k,n));                
     end
     
     vbtemp = vbmaximize(X,vbtemp);    
@@ -156,9 +163,10 @@ vbmodel.prior = rmfield(vbmodel.prior,'var_orig');
 % warning('remove R!');
 
 % L = L(2:iter);
-label = zeros(1,n);
-[~,label(:)] = max(vbmodel.R,[],2);
-[~,~,label(:)] = unique(label);
+if nargout > 1
+    labels = zeros(1,nold);
+    [~,labels(~removed)] = max(vbmodel.R,[],2);
+end
 
 end
 
@@ -195,17 +203,14 @@ prior.UB = UB;
 % width = (UB-LB)/10;
 % width(isinf(width)) = 1;
 
-% Remove points outside bounds
-f = any(bsxfun(@le, X, LB) | bsxfun(@ge, X, UB),1);
-if any(f)
-    X(:,f) = [];
+% Remove points outside bounds or with Infs or NaNs
+removed = any(bsxfun(@le, X, LB) | bsxfun(@ge, X, UB),1) | any(~isfinite(X),1);
+if any(removed)
+    X(:,removed) = [];
     if isfield(vbmodel,'R') && ~isempty(vbmodel.R)
-        vbmodel.R(:,f) = [];
+        vbmodel.R(:,removed) = [];
     end
     [d,n2] = size(X);
-    removed = n - n2;
-else
-    removed = 0;
 end
 
 % First run, reparametrize space if needed
