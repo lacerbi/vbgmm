@@ -44,24 +44,31 @@ else
     end    
 end
 
+lw = log(w);
+v1 = zeros(1,k);
+mu1 = zeros(1,k);
+lw1 = zeros(1,k);
+
 for i = 1:k
     v1(i) = 1/Lambda(d,d,i);
     mu1(i) = Mu(i,d) - v1(i)*Lambda(d,notd,i)*(x(notd) - Mu(i,notd))';
-    w1(i) = w(i)*umvnpdf(x(notd),Mu(i,notd),Sigma(notd,notd,i));
-end    
-w1 = w1./sum(w1);
+    lw1(i) = lw(i) + umvnlogpdf(x(notd),Mu(i,notd),Sigma(notd,notd,i));
+end
+
+lw1 = exp(lw1 - max(lw1));
+w1 = lw1./sum(lw1);
  
 end
 
-function y = umvnpdf(X,Mu,Sigma)
-%UMVNPDF Unnormalized multivariate normal pdf.
+function y = umvnlogpdf(X,Mu,Sigma)
+%UMVNLOGPDF Unnormalized multivariate normal log pdf.
 
 X0 = bsxfun(@minus,X,Mu);
 [R,err] = chol(Sigma);
 xRinv = X0 / R;
 logSqrtDetSigma = sum(log(diag(R)));
 quadform = sum(xRinv.^2, 2);
-y = exp(-0.5*quadform - logSqrtDetSigma);
+y = -0.5*quadform - logSqrtDetSigma;
 
 end
 
