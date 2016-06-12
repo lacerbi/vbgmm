@@ -36,7 +36,11 @@ EpK = sum(log(1:k));    % Penalty for number of components
 % Compute Jacobian for transformed constrained variables
 LB = prior.LB;
 UB = prior.UB;
-lJac = -sum(sum(vbtransform(X,LB,UB,'lgrad'),2),1);    
+if any(isfinite(LB)) || any(isfinite(UB))
+    lJac = -sum(sum(vbtransform(X,LB,UB,'lgrad'),2),1);
+else
+    lJac = 0;
+end
 L = Epz-Eqz+Eppi-Eqpi+Epmu-Eqmu+EpLambda-EqLambda+EpX+EpK+lJac;
 
 end
