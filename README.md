@@ -5,7 +5,8 @@ This toolbox implements variational inference for Gaussian mixture models (vbGMM
  
  - Speed up initialization with fast K-means algorithm (Charles Elkan, "Using the Triangle Inequality to Accelerate k-Means", 2003; [link](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.14.8422))
  - Generate samples from the trained mixture model (`vbgmmrnd.m`)
- - Expected pdf of the trained vbGMM at any given point (`vbgmmpred.m`)
+ - Expected pdf of the trained vbGMM at any given point (`vbgmmpdf.m`)
+ - Speed up inference by killing near-empty components (to be perfected)
  - Support for bounded variables (data are transformed for inference to an unbounded space via a nonlinear transformation) -- to be implemented.
  - Generate marginal and conditional vbGMMs -- to be implemented.
  
