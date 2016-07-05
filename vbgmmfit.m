@@ -235,20 +235,22 @@ if ~isfield(prior,'M') || isempty(prior.M)
     prior.M_orig = prior.nu*diag(prior.var_orig);
 elseif ~isfield(prior,'M_orig') % Untransformed
     prior.M_orig = prior.M;
-    y = [];
-    % Compute scale matrix in transformed space via Monte Carlo
-    while size(y,1) < 1e5
-        x = mvnrnd(repmat(prior.m_orig',[1e5,1]),prior.M);
-        f = any(bsxfun(@le, x, LB') | bsxfun(@ge, x, UB'),2);
-        x(f,:) = [];
-        y = [y; vbtransform(x',LB,UB,'dir')'];
+    if any(isfinite(LB)) || any(isfinite(UB))
+        y = [];
+        % Compute scale matrix in transformed space via Monte Carlo
+        while size(y,1) < 1e5
+            x = mvnrnd(repmat(prior.m_orig',[1e5,1]),prior.M);
+            f = any(bsxfun(@le, x, LB') | bsxfun(@ge, x, UB'),2);
+            x(f,:) = [];
+            y = [y; vbtransform(x',LB,UB,'dir')'];
+        end
+
+        if isdiag(prior.M_orig)
+            prior.M = diag(var(y));
+        else
+            prior.M = cov(y);        
+        end
     end
-    if isdiag(prior.M_orig)
-        prior.M = diag(var(y));
-    else
-        prior.M = cov(y);        
-    end
-    clear y;
 end
 
 prior.logW = -2*sum(log(diag(chol(prior.M))));
