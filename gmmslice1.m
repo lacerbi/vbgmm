@@ -65,6 +65,7 @@ function y = umvnlogpdf(X,Mu,Sigma)
 
 X0 = bsxfun(@minus,X,Mu);
 [R,err] = chol(Sigma);
+if err ~= 0; error('Cannot slice along the given direction, matrix is not positive definite.'); end
 xRinv = X0 / R;
 logSqrtDetSigma = sum(log(diag(R)));
 quadform = sum(xRinv.^2, 2);
