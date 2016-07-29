@@ -1,6 +1,5 @@
 function [vbmodel,labels,L,removed] = vbgmmfit(X,m,prior,options)
 %VBGMMFIT Variational Bayes fit of Gaussian mixture model.
-%
 %   VBMODEL = VBGMMFIT(X,M) fits a variational Gaussian mixture model to 
 %   D-by-N data matrix X. Columns of X correspond to data points, rows 
 %   correspond to variables. The initialization parameter M can be:
@@ -103,6 +102,7 @@ if any(removed) && trace > 1
 end
 [~,n] = size(X);
 
+kold = Inf;
 L = -Inf;
 for irun = 1:starts    
     if trace > 1
@@ -138,7 +138,10 @@ for irun = 1:starts
         Liter(iter) = vbbound(X,vbtemp)/n;
         impro = abs((Liter(iter)/Liter(iter-1)-1));    % Relative improvement
         k = size(vbtemp.m,2);
-        if trace > 1; fprintf(displayFormat,iter,Liter(iter),impro,k); end
+        if trace > 2 || trace > 1 && k ~= kold
+            fprintf(displayFormat,iter,Liter(iter),impro,k);
+        end
+        kold = k;
         if impro < tol; break; end
         vbtemp = vbprune(vbtemp,options.TolResponsibility);
     end

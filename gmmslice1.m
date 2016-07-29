@@ -1,5 +1,5 @@
 function [w1,mu1,v1] = gmmslice1(vec,x,w,Mu,Sigma,ischol)
-%GMMSLICE Conditional Gaussian mixture model sliced in one dimension.
+%GMMSLICE1 Conditional Gaussian mixture model sliced in one dimension.
 
 if nargin < 6 || isempty(ischol); ischol = 0; end
 

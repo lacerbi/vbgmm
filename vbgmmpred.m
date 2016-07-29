@@ -1,6 +1,5 @@
 function [labels,R] = vbgmmpred(vbmodel,X)
 %VBGMMPRED Predict labels and responsibility for variational Gaussian mixture model.
-%
 %   LABELS = VBGMMPRED(VBMODEL,X) predicts the cluster label for each data 
 %   point in X given the variational Gaussian mixture model VBMODEL.
 %   X is a D-by-N data matrix, where D is the dimensionality of the data

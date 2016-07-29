@@ -1,6 +1,5 @@
 function y = vbgmmpdf(vbmodel,X,flag)
 %VBGMMPDF Posterior predictive pdf for variational Gaussian mixture model.
-%
 %   Y = VBGMMPDF(VBMODEL,X) computes posterior predictive probability
 %   density (pdf) of the variational Gaussian mixture model VBMODEL, 
 %   evaluated at the values in X. X is a D-by-N data matrix, where D is the

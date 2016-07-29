@@ -1,6 +1,5 @@
 function [fig,ax]=vbcornerplot(data, varargin)
-%CORNERPLOT Corner plot showing projections of a multidimensional data set.
-%
+%VBCORNERPLOT Corner plot showing projections of a multidimensional data set.
 % CORNERPLOT(DATA) plots every 2D projection of a multidimensional data
 % set. DATA is an nSamples-by-nDimensions matrix.
 %

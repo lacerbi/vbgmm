@@ -1,6 +1,5 @@
 function X = vbgmmrnd(vbmodel,n)
 %VBGMMRND Draw samples from posterior variational Gaussian mixture model.
-%
 %   X = VBGMMRND(VBMODEL) returns a random vector drawn from the variational 
 %   Gaussian mixture model VBMODEL.
 %
