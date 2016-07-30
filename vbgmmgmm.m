@@ -11,11 +11,11 @@ function gmm = vbgmmgmm(vbmodel,method)
 
 if nargin < 2 || isempty(method); method = 'mean'; end
 
-nvars = size(vbmodel.alpha,2);
+nvars = numel(vbmodel.alpha);
 
 gmm.w = vbmodel.alpha/sum(vbmodel.alpha);
 gmm.Mu = vbmodel.m';
-df = zeros(1,1,numel(vbmodel.nu));
+df = zeros(1,1,nvars);
 switch lower(method)
     case 'mean'
         df(1,1,:) = (vbmodel.nu - nvars - 1);

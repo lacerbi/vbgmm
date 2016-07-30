@@ -12,39 +12,65 @@ function X = vbgmmrnd(vbmodel,n)
 
 if nargin < 2 || isempty(n); n = 1; end
 
-alpha = vbmodel.alpha; % Dirichlet
-beta = vbmodel.beta;   % Gaussian
-m = vbmodel.m;         % Gaussian
-nu = vbmodel.nu;       % Wishart
-U = vbmodel.U;         % Wishart 
-[d,k] = size(m);
-
-% nd = size(n);
-n = prod(n);
-
-p = alpha./sum(alpha);
-r = multinomrnd(n,p);
-
-X = zeros(d,n);
-
-for i = 1:k
-    if r(i) == 0; continue; end
+% Gaussian mixture (non-variational)
+if isfield(vbmodel,'Mu') && isfield(vbmodel,'Sigma')
+    w = vbmodel.w;
+    m = vbmodel.Mu';
+    U = vbmodel.Sigma;
     
-    offset = sum(r(1:i-1));
-    di = [];
-    Sigma = zeros(d,d,r(i));
-    % Sample lambda
-    S = U(:,:,i)'*U(:,:,i);  
-    for j = 1:r(i)
-        if ~isempty(di)
-            L = iwishrnd(S,nu(i),di);
-        else
-            [L,di] = iwishrnd(S,nu(i));
-        end
-        Sigma(:,:,j) = beta(i)*L/nu(i);
+    n = prod(n);
+    
+    p = w./sum(w);
+    r = multinomrnd(n,p);
+    
+    [d,k] = size(m);
+    X = zeros(d,n);
+    for i = 1:k
+        if r(i) == 0; continue; end
+
+        offset = sum(r(1:i-1));
+        % di = [];
+        % Sigma = zeros(d,d,r(i));
+        S = U(:,:,i)'*U(:,:,i);
+         X(:,offset+(1:r(i))) = mvnrnd(repmat(m(:,i)',[r(i),1]),S)';
     end
-     X(:,offset+(1:r(i))) = mvnrnd(m(:,i)',Sigma)';    
     
+else
+
+    alpha = vbmodel.alpha; % Dirichlet
+    beta = vbmodel.beta;   % Gaussian
+    m = vbmodel.m;         % Gaussian
+    nu = vbmodel.nu;       % Wishart
+    U = vbmodel.U;         % Wishart 
+    [d,k] = size(m);
+
+    % nd = size(n);
+    n = prod(n);
+
+    p = alpha./sum(alpha);
+    r = multinomrnd(n,p);
+
+    X = zeros(d,n);
+
+    for i = 1:k
+        if r(i) == 0; continue; end
+
+        offset = sum(r(1:i-1));
+        di = [];
+        Sigma = zeros(d,d,r(i));
+        % Sample lambda
+        S = U(:,:,i)'*U(:,:,i);  
+        for j = 1:r(i)
+            if ~isempty(di)
+                L = iwishrnd(S,nu(i),di);
+            else
+                [L,di] = iwishrnd(S,nu(i));
+            end
+            Sigma(:,:,j) = beta(i)*L/nu(i);
+        end
+         X(:,offset+(1:r(i))) = mvnrnd(m(:,i)',Sigma)';    
+
+    end
 end
 
 % Transformation of constrained variables
