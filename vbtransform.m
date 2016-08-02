@@ -12,7 +12,7 @@ switch lower(method(1:3))
         for i = 1:d
             % Bounded interval, use logit transform
             if isfinite(LB(i)) && isfinite(UB(i))
-                X(i,:) = logit((X(i,:) - LB(i))./(UB(i)-LB(i)));
+                X(i,:) = logiinv((X(i,:) - LB(i))./(UB(i)-LB(i)));
 
             % One-sided bounded intervals, use logarithmic transform
             elseif isfinite(LB(i))
@@ -28,7 +28,7 @@ switch lower(method(1:3))
         for i = 1:d
             % Bounded interval, use inverse logit transform
             if isfinite(LB(i)) && isfinite(UB(i))
-                X(i,:) = LB(i) + (UB(i) - LB(i))*invlogit(X(i,:));
+                X(i,:) = LB(i) + (UB(i) - LB(i))*logicdf(X(i,:));
                 
             % One-sided bounded intervals, use exponential transform
             elseif isfinite(LB(i))
@@ -50,7 +50,7 @@ switch lower(method(1:3))
 
             % One-sided bounded intervals, use exponential transform
             elseif isfinite(LB(i)) || isfinite(UB(i))
-                lg(i,:) = (X(i,:));
+                lg(i,:) = X(i,:);
             end
         end
         varargout{1} = lg;

@@ -18,6 +18,12 @@ if isfield(vbmodel,'Mu') && isfield(vbmodel,'Sigma')
     m = vbmodel.Mu';
     U = vbmodel.Sigma;
     
+    if isfield(vbmodel,'ischol') && ~isempty(vbmodel.ischol)
+        ischol = vbmodel.ischol;
+    else
+        ischol = 0;
+    end
+    
     n = prod(n);
     
     p = w./sum(w);
@@ -29,9 +35,11 @@ if isfield(vbmodel,'Mu') && isfield(vbmodel,'Sigma')
         if r(i) == 0; continue; end
 
         offset = sum(r(1:i-1));
-        % di = [];
-        % Sigma = zeros(d,d,r(i));
-        S = U(:,:,i)'*U(:,:,i);
+        if ischol
+            S = U(:,:,i)'*U(:,:,i);
+        else
+            S = U(:,:,i);
+        end
          X(:,offset+(1:r(i))) = mvnrnd(repmat(m(:,i)',[r(i),1]),S)';
     end
     
