@@ -11,14 +11,18 @@ function gmm = vbgmmgmm(vbmodel,method)
 
 if nargin < 2 || isempty(method); method = 'mean'; end
 
-nvars = numel(vbmodel.alpha);
+nvars = size(vbmodel.U,1);
 
 gmm.w = vbmodel.alpha/sum(vbmodel.alpha);
 gmm.Mu = vbmodel.m';
-df = zeros(1,1,nvars);
+df = zeros(1,1,numel(vbmodel.alpha));
 switch lower(method)
     case 'mean'
         df(1,1,:) = (vbmodel.nu - nvars - 1);
+        if any(df < 1)
+            warning('Moments of the inverse Wishart may not exist.');
+            df(df < 1) = 1;
+        end
     case 'mode'
         df(1,1,:) = (vbmodel.nu + nvars + 1);
     otherwise
