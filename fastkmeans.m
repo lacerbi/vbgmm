@@ -112,7 +112,7 @@ switch lower(options.Preprocessing)
     case 'whiten'
         mu = mean(X,1);
         X = bsxfun(@minus,X,mu);
-        M = X'*X / n;
+        M = X'*X / (n-1);
         [U,S] = svd(M);
         X = X*U'*diag(1./sqrt(diag(S+eps)));
     otherwise
