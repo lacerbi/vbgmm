@@ -120,7 +120,7 @@ for irun = 1:starts
                 labels = randi(k,[1,n]);
             case 'kmeans'
                 kmeansopt.Display = 'off';
-                kmeansopt.Preprocessing = 'whiten';
+                kmeansopt.Preprocessing = 'normalize';
                 labels = fastkmeans(X',k,kmeansopt);
             otherwise
                 error('OPTIONS.ClusterInit can be ''rand'' for random cluster assignment or ''kmeans'' for K-means clustering.');
